@@ -25,6 +25,14 @@ app.use(
 );
 
 // API endpoints
+
+/**
+ * @route GET /
+ * @desc Test endpoint
+ */
+ app.get('/', (req, res) =>
+ res.send('http get request sent to root api endpoint')
+);
 /**
  * @route POST api/users
  * @desc Register user
@@ -306,5 +314,5 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Connection listener
-const port = process.env.PORT || 5000;
+const port = 5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
