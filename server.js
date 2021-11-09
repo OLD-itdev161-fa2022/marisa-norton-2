@@ -77,9 +77,7 @@ app.post(
 
         // Save to the db and return
         await user.save();
-
-        // Generate and return a JWT token
-        returnToken(user, res);
+        res.send('User Successfully registered');
       } catch (error) {
         res.status(500).send('Server error');
       }
