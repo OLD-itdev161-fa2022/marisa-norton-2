@@ -46,8 +46,8 @@ class App extends React.Component {
           {this.state.data}
           </Route>
           <Switch>
-            <Route path="/register" component={Register}/>
-            <Route path="/login" component={Login}/>
+            <Route exact path="/register" component={Register}/>
+            <Route exact path="/login" component={Login}/>
           </Switch>
         </main>
       </div>
