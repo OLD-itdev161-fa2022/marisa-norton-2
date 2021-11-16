@@ -1,75 +1,140 @@
-import React from 'react';
-import './App.css';
-import axios from 'axios';
+import React from "react";
+import axios from "axios";
+import "./App.css";
+import Login from "./components/Login/Login";
+import Register from "./components/Register/Register";
 import {BrowserRouter as Router, Switch, Route, Link} from "react-router-dom";
-import Register from './components/Register/Register';
-import Login from './components/Login/Login';
+
 
 class App extends React.Component {
+
   state = {
-    data: null,
+    posts: [],
+    post: null,
     token: null,
     user: null
+  };
+
+  componentDidMount(){
+    this.authenticateUser();
+}
+
+authenticateUser = () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    localStorage.removeItem("user")
+    this.setState({user: null});
   }
-
-  componentDidMount() {
-    axios.get('http://localhost:5000')
-      .then((response) => {
-
+  if (token) {
+    const config = {
+      headers: {
+        "x-auth-token": token
+      }
+    }
+    axios.get("http://localhost:5000/api/auth", config)
+    .then((response) => {
+      localStorage.setItem("user", response.data.name)
       this.setState({
-        data: response.data
-      })
+        user: response.data.name,
+        token: token
+      }, () => {
+        this.loadData();
+      }
+      );
     })
     .catch((error) => {
-      console.error(`Error fetching data: ${error}`);
-    })
-
-    this.authenticateUser();
-  }
-
-
-  authenticateUser = () => {
-    const token = localStorage.getItem("token");
-  
-    if (!token) {
-      localStorage.removeItem("user")
+      localStorage.removeItem("user");
       this.setState({user: null});
-    }
-    if (token) {
-      const config = {
-        headers: {
-          "x-auth-token": token
-        }
-      }
-      axios.get("http://localhost:5000/api/auth", config)
-      .then((response) => {
-        localStorage.setItem("user", response.data.name)
-        this.setState({
-          user: response.data.name,
-          token: token
-        }, () => {
-          this.loadData();
-        }
-        );
-      })
-      .catch((error) => {
-        localStorage.removeItem("user");
-        this.setState({user: null});
-        console.error(`Error logging in: ${error}`);
-      });
-    }
+      console.error(`Error logging in: ${error}`);
+    });
   }
+}
 
-  logOut = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    this.setState({user: null, token: null});
+loadData = () => {
+  const {token} = this.state;
+  if (token) {
+    const config = {
+      headers:{
+        "x-auth-token": token
+      }
+    };
+    axios.get("http://localhost:5000/api/posts", config)
+    .then((response) => {
+      this.setState({
+        posts: response.data
+      });
+    })
+    .catch((error) => {
+      console.log(`Error fetching data: ${error}`)
+    });
   }
+}
+
+viewPost = (post) => {
+  console.log(`view ${post.title}`);
+  this.setState({
+    post: post
+  });
+}
+
+deletePost = post => {
+  const {token} = this.state;
+
+  if (token) {
+    const config = {
+      headers: {
+        "x-auth-token": token
+      }
+    };
+    axios.delete(` http://localhost:5000/api/posts/${post._id}`, config)
+    .then( response => {
+      const newPosts = this.state.posts.filter(p => p._id !== post._id);
+      this.setState({
+        posts: [...newPosts]
+      });
+    })
+    .catch(error => {
+      console.log(`Error deleting post: ${error}`);
+    });
+  }
+}
+
+editPost = post => {
+  this.setState({
+    post: post
+  });
+}
+
+onPostCreated = post => {
+  const newPosts = [...this.state.posts, post];
   
- 
-  render() {
-    let { user, data } = this.state;
-    const authProps = {
+  this.setState({
+    posts: newPosts
+  });
+}
+
+onPostUpdate = post => {
+  console.log("updated post: ", post);
+  const newPosts = [...this.state.posts];
+  const index = newPosts.findIndex(p => p._id === post._id);
+
+  newPosts[index] = post;
+  this.setState({
+    posts: newPosts
+  });
+}
+
+logOut = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  this.setState({user: null, token: null});
+}
+
+//render starts
+  render(){
+    let {user, data} = this.state;
+    const authProps = { 
       authenticateUser: this.authenticateUser
     }
     return(
@@ -85,32 +150,37 @@ class App extends React.Component {
               <Link to ="/register">Register</Link>
             </li>
             <li>
-              {user ?
-              <Link to ="" onClick={this.logOut}>Log Out</Link> :
+            {user ? <Link to= "" onClick = {this.logOut}>Log out</Link> :
               <Link to ="/login">Login</Link>
-              }
+            }
             </li>
           </ul>
         </header>
         <main>
-          <Route exact path="/">
-          {user ?
-            <React.Fragment>
-              <div>Hello {user}!</div>
-              <div>{data}</div>
-            </React.Fragment> :
-            <React.Fragment>
-            Please Register or Log In
-            </React.Fragment>
-        }
-          </Route>
           <Switch>
-            <Route 
-            exact path="/register"
-            render={() => <Register {...authProps} />} />
-            <Route 
-            exact path="/login"
-            render={() => <Register {...authProps} />} />
+          <Route exact path="/">
+          { user ? (
+            <React.Fragment>
+              <div className ="greeting">Hello {user} </div>
+              <div>{data}</div>
+              
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              Please Register or Login
+            </React.Fragment>
+          )}
+          </Route>
+
+          
+          <Route exact path="/register" 
+            render = {() => <Register {...authProps}/>}
+          />
+          
+          <Route exact path="/login" 
+          render = {() => <Login {...authProps}/>}
+          />
+
           </Switch>
         </main>
       </div>
