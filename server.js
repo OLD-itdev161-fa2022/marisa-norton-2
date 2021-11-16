@@ -79,22 +79,8 @@ app.post(
         await user.save();
 
 
-
-        const payload = {
-          user: {
-          id: user.id
-          }
-        };
-
-        jwt.sign(
-          payload,
-          config.get('jwtSecret'),
-          { expiresIn: '10hr' },
-          (err, token) => {
-            if (err) throw err;
-            res.json({ token: token });
-          }
-        );
+      returnToken(user,res);
+        
       } catch (error) {
         res.status(500).send('Server error');
       }
@@ -156,9 +142,26 @@ app.post(
     }
   }
 );
+const returnToken = (user, res) => {
+  const payload = {
+    user: {
+      id: user.id
+    }
+  };
 
 
-// Post endpoints
+jwt.sign(
+  payload,
+  config.get('jwtSecret'),
+  { expiresIn: '10hr' },
+  (err, token) => {
+    if (err) throw err;
+    res.json({ token: token });
+  }
+  );
+};
+
+/// Post endpoints
 /**
  * @route POST api/posts
  * @desc Create post
