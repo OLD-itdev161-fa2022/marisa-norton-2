@@ -8,6 +8,7 @@ import PostList from './components/PostList/PostList';
 import Post from './components/Post/Post';
 import CreatePost from './components/Post/CreatePost';
 import EditPost from './components/Post/EditPost';
+
 class App extends React.Component {
   state = {
     posts: [],
@@ -19,12 +20,13 @@ class App extends React.Component {
   componentDidMount() {
     this.authenticateUser();
   }
+
   authenticateUser = () => {
     const token = localStorage.getItem('token');
 
     if (!token) {
       localStorage.removeItem('user');
-      this.setState ({ user: null });
+      this.setState({ user: null });
     }
 
     if (token) {
@@ -77,12 +79,11 @@ class App extends React.Component {
     }
   };
 
-
   logOut = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.setState({ user: null, token: null });
-  }
+  };
 
   viewPost = post => {
     console.log(`view ${post.title}`);
@@ -90,8 +91,6 @@ class App extends React.Component {
       post: post
     });
   };
-
-
 
   deletePost = post => {
     const { token } = this.state;
@@ -116,8 +115,6 @@ class App extends React.Component {
         });
     }
   };
-
-
 
   editPost = post => {
     this.setState({
@@ -145,14 +142,11 @@ class App extends React.Component {
     });
   };
 
-
-
   render() {
     let { user, posts, post, token } = this.state;
     const authProps = {
       authenticateUser: this.authenticateUser
     };
-
 
     return (
       <Router>
@@ -171,27 +165,29 @@ class App extends React.Component {
                 )}
               </li>
               <li>
-                {user ? 
-                  <Link to="" onClick={this.logOut}>Log out</Link> :
-                  <Link to="/login">Log in</Link> 
-                }
-                
+                {user ? (
+                  <Link to="" onClick={this.logOut}>
+                    Log out
+                  </Link>
+                ) : (
+                  <Link to="/login">Log in</Link>
+                )}
               </li>
             </ul>
           </header>
           <main>
-             
             <Switch>
-            <Route exact path="/">
+              <Route exact path="/">
                 {user ? (
                   <React.Fragment>
                     <div>Hello {user}!</div>
-                    <PostList 
-                      posts={posts} 
+                    <PostList
+                      posts={posts}
                       clickPost={this.viewPost}
-                      deletePost={this.deletePost} 
+                      deletePost={this.deletePost}
+                      editPost={this.editPost}
                     />
-                    </React.Fragment>
+                  </React.Fragment>
                 ) : (
                   <React.Fragment>Please Register or Login</React.Fragment>
                 )}
@@ -209,14 +205,16 @@ class App extends React.Component {
                   onPostUpdated={this.onPostUpdated}
                 />
               </Route>
-              <Route 
-                exact 
-                path="/register" 
-                render={() => <Register {...authProps} />} />
-              <Route 
-                exact 
-                path="/login" 
-                render={() => <Login {...authProps} />} />
+              <Route
+                exact
+                path="/register"
+                render={() => <Register {...authProps} />}
+              />
+              <Route
+                exact
+                path="/login"
+                render={() => <Login {...authProps} />}
+              />
             </Switch>
           </main>
         </div>
